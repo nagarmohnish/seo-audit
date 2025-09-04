@@ -1,6 +1,6 @@
 .venv/
 *.csv
 *.xlsx
-reports/
+data/
 __pycache__/
 *.pyc

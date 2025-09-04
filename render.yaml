@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: seo-audit
+    env: python
+    plan: free
+    branch: main
+    repo: https://github.com/nagarmohnish/seo-audit
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn seo_dashboard:server
+    autoDeploy: true

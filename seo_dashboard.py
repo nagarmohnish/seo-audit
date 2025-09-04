@@ -8,14 +8,15 @@ import dash_bootstrap_components as dbc
 import os
 import base64
 
-# Initialize Dash app with Bootstrap
+# Initialize Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server  # For Render deployment
 
-# Load audit data from audit_report.xlsx
+# Load audit data
 def load_audit_data():
     audit_file = 'reports/audit_report.xlsx'
     if not os.path.exists(audit_file):
-        print(f'Error: {audit_file} not found in {os.getcwd()}. Please run audit.ipynb to generate audit reports.')
+        print(f'Error: {audit_file} not found.')
         return None
     try:
         data = {
@@ -39,30 +40,27 @@ def load_audit_data():
         print(f'Error loading audit data: {e}')
         return None
 
-# Load original CSV for histograms
+# Load CSV for histograms
 def load_csv_data():
     csv_file = 'data/raw/internal_all_02.csv'
     if not os.path.exists(csv_file):
-        print(f'Error: {csv_file} not found in {os.getcwd()}. Please ensure the Screaming Frog crawl file is in the data/raw directory.')
-        return None
+        print(f'Error: {csv_file} not found.')
+        return pd.DataFrame({'title 1 length': [], 'meta description 1 length': []})  # Fallback empty DataFrame
     try:
         df = pd.read_csv(csv_file, low_memory=False)
         df.columns = df.columns.str.lower().str.strip()
-        if 'title 1 length' not in df.columns or 'meta description 1 length' not in df.columns:
-            print(f'Error: Required columns (title 1 length, meta description 1 length) missing in {csv_file}.')
-            return None
         return df
     except Exception as e:
         print(f'Error loading CSV: {e}')
-        return None
+        return pd.DataFrame({'title 1 length': [], 'meta description 1 length': []})
 
 # Load data
 data = load_audit_data()
 csv_data = load_csv_data()
-if data is None or csv_data is None:
+if data is None:
     app.layout = html.Div([
-        html.H1('Error: Missing data files.', className='text-center my-4'),
-        html.P('Please run audit.ipynb to generate reports/audit_report.xlsx and ensure data/raw/internal_all_02.csv exists in C:\\Library\\Projects\\LH2\\Automation\\audit_test\\at_test_01\\data\\raw.')
+        html.H1('Error: Missing audit_report.xlsx.', className='text-center my-4'),
+        html.P('Please run audit.ipynb to generate reports/audit_report.xlsx.')
     ])
 else:
     # Load images
@@ -71,7 +69,6 @@ else:
             with open(image_path, 'rb') as f:
                 encoded = base64.b64encode(f.read()).decode('ascii')
             return f'data:image/png;base64,{encoded}'
-        print(f'Warning: Image {image_path} not found.')
         return None
 
     # Create metric card
@@ -97,7 +94,7 @@ else:
             export_headers='display'
         )
 
-    # Layout with collapsible sections
+    # Layout
     app.layout = dbc.Container([
         html.H1('SEO Audit Dashboard', className='text-center my-4'),
         
